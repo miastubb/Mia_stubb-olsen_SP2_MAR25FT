@@ -1,1 +1,22 @@
 @import "tailwindcss";
+
+:root {
+  /* Colors */
+  --color-primary: #fe9a00;
+  --color-secondary: #ff8900;
+  --color-active: #e17100;
+  --color-text: #ebebeb;
+  --color-background: #000000;
+  --color-success: #52b849;
+
+  /* Typography */
+  --font-display: "Instrument Serif", serif;
+  --font-body: "DM Sans", sans-serif;
+  --font-listing: "Consolas", monospace;
+
+  /* Font sizes */
+  --font-size-hero: 4.5rem;
+  --font-size-logo: 1.25rem;
+  --font-size-bid: 1.125rem;
+  --font-size-base: 1rem;
+}
