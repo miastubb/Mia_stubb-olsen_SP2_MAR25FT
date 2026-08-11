@@ -1,4 +1,4 @@
-import "./style.css";
+import "./global.css";
 
 document.querySelector("#app").innerHTML = `
   <main class="min-h-screen bg-slate-100 flex items-center justify-center">
