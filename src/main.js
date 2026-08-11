@@ -7,5 +7,3 @@ document.querySelector("#app").innerHTML = `
     </h1>
   </main>
 `;
-const test = { message: "I am deliberately badly formatted" };
-console.log(test);
