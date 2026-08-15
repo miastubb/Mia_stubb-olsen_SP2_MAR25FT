@@ -6,12 +6,12 @@ export function createSearchBar() {
 
   searchBar.innerHTML = `
      <div class="flex w-full border border-white/10 bg-white/10">
-      <div class="flex flex-1 items-center gap-3 px-4">
+     <div class="flex min-w-0 flex-1 items-center gap-3 px-4">
         <img
         src="${searchIcon}"
         alt=""
         aria-hidden="true"
-        class="h-5 w-5 shrink-0"
+        class="shrink-0 cursor-pointer border-l border-white/10 px-3 font-mono tracking-wide text-neutral-400 transition-colors hover:text-white sm:px-5"
        />
 
         <input
