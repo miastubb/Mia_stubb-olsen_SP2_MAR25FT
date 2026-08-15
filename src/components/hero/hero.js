@@ -19,7 +19,7 @@ export function Hero() {
 
       <h1 class="text-5xl leading-[1.04] sm:text-6xl md:text-7xl">
         Bid on the
-        <span class="italic text-(--color-primary)">extraordinary.</span>
+        <span class="italic text-amber-400">extraordinary.</span>
       </h1>
     </div>
   `;
