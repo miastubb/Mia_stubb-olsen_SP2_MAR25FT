@@ -115,7 +115,7 @@ export function renderHeader() {
         <div class="grid grid-cols-2 gap-2 border-t border-neutral-800 pt-5">
           <a
             href="/login/"
-            class="flex h-[52px] items-center justify-center gap-2 border border-neutral-700 text-base uppercase tracking-wider text-(--color-text)"
+            class="flex h-13 items-center justify-center gap-2 border border-neutral-700 text-base uppercase tracking-wider text-(--color-text)"
           >
             <img src="${loginIcon}" alt="" class="h-4 w-4" aria-hidden="true" />
             Log In
@@ -123,7 +123,7 @@ export function renderHeader() {
 
           <a
             href="/register/"
-            class="flex h-[52px] items-center justify-center gap-2 bg-(--color-primary) text-base uppercase tracking-wider text-black"
+            class="flex h-13 items-center justify-center gap-2 bg-(--color-primary) text-base uppercase tracking-wider text-black"
           >
             <img
               src="${registerIcon}"
