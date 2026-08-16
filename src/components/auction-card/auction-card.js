@@ -100,7 +100,7 @@ export function createAuctionCard(listing) {
 
       <span
         data-card-status
-        class="absolute top-4 left-4 hidden bg-red-600 px-3 py-2 font-mono font-medium text-white"
+        class="absolute top-4 left-4 hidden bg-red-800 px-3 py-2 font-mono font-medium text-white"
       ></span>
 
       <span
@@ -112,7 +112,7 @@ export function createAuctionCard(listing) {
     <div class="p-6">
       <p
         data-card-category
-        class="font-mono uppercase tracking-wider text-orange-600"
+        class="font-mono uppercase tracking-wider text-orange-800"
       ></p>
 
       <h2 data-card-title class="mt-4 min-h-14 text-xl font-medium text-black!"></h2>
@@ -133,7 +133,7 @@ export function createAuctionCard(listing) {
           </div>
         </div>
 
-        <div class="mt-6 flex items-center gap-2 font-mono text-orange-600">
+        <div class="mt-6 flex items-center gap-2 font-mono text-orange-800">
           <span aria-hidden="true">◷</span>
           <time data-card-time></time>
         </div>
