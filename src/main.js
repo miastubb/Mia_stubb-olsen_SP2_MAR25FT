@@ -5,14 +5,115 @@ import "./variables.css";
 import { Hero } from "./components/hero/hero.js";
 import { renderHeader } from "./components/header/header.js";
 import { createSearchBar } from "./components/search-bar/search-bar.js";
-import { createAuctionFilter } from "./components/auction-filter/auction-filter.js";
+import {
+  createAuctionFilter,
+  resetAuctionFilter,
+  updateAuctionFilterCounts,
+} from "./components/auction-filter/auction-filter.js";
 import { createAuctionResults } from "./components/auction-results/auction-results.js";
+import {
+  filterAuctionListings,
+  getAuctionFilterCounts,
+} from "./utils/filter-listings.js";
+import { mockListings } from "./data/mock-listings.js";
 
 renderHeader();
 
 const app = document.querySelector("#app");
 
+const landingState = {
+  listings: mockListings,
+  searchTerm: "",
+  activeFilter: "all",
+};
+
+let resultsSection;
+let isResettingControls = false;
+
+/**
+ * Renders listings using the current search and filter state.
+ *
+ * @returns {void}
+ */
+function renderAuctionListings() {
+  const filteredListings = filterAuctionListings(landingState.listings, {
+    searchTerm: landingState.searchTerm,
+    activeFilter: landingState.activeFilter,
+  });
+
+  const hasActiveSearchOrFilter =
+    Boolean(landingState.searchTerm) || landingState.activeFilter !== "all";
+
+  const updatedResultsSection = createAuctionResults(filteredListings, {
+    hasActiveSearchOrFilter,
+    onClearFilters: clearSearchAndFilters,
+  });
+
+  if (resultsSection) {
+    resultsSection.replaceWith(updatedResultsSection);
+  } else {
+    app.append(updatedResultsSection);
+  }
+
+  resultsSection = updatedResultsSection;
+
+  const filterCounts = getAuctionFilterCounts(
+    landingState.listings,
+    landingState.searchTerm
+  );
+
+  updateAuctionFilterCounts(auctionFilter, filterCounts);
+}
+
+/**
+ * Updates the current listing search.
+ *
+ * @param {string} searchTerm - Submitted search term.
+ * @returns {void}
+ */
+function handleSearch(searchTerm) {
+  landingState.searchTerm = searchTerm;
+
+  if (!isResettingControls) {
+    renderAuctionListings();
+  }
+}
+
+/**
+ * Updates the active listing filter.
+ *
+ * @param {string} activeFilter - Selected filter name.
+ * @returns {void}
+ */
+function handleFilterChange(activeFilter) {
+  landingState.activeFilter = activeFilter;
+
+  if (!isResettingControls) {
+    renderAuctionListings();
+  }
+}
+
+/**
+ * Clears the search input, active filter, and filtered results.
+ *
+ * @returns {void}
+ */
+function clearSearchAndFilters() {
+  isResettingControls = true;
+
+  searchBar.reset();
+  resetAuctionFilter(auctionFilter);
+
+  isResettingControls = false;
+
+  renderAuctionListings();
+}
+
+const searchBar = createSearchBar(handleSearch);
+const auctionFilter = createAuctionFilter(handleFilterChange);
+
 app.append(Hero());
-app.append(createSearchBar());
-app.append(createAuctionFilter());
-app.append(createAuctionResults());
+app.append(searchBar);
+app.append(auctionFilter);
+
+renderAuctionListings();
