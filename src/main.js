@@ -15,20 +15,64 @@ import {
   filterAuctionListings,
   getAuctionFilterCounts,
 } from "./utils/filter-listings.js";
-import { mockListings } from "./data/mock-listings.js";
+import { fetchAuctionListings } from "./api/listings/read-listings.js";
 
 renderHeader();
 
 const app = document.querySelector("#app");
 
 const landingState = {
-  listings: mockListings,
+  listings: [],
   searchTerm: "",
   activeFilter: "all",
 };
 
 let resultsSection;
 let isResettingControls = false;
+
+/**
+ * Replaces the results area with a status message.
+ *
+ * @param {string} message - Message shown to the user.
+ * @param {"status" | "alert"} role - Accessibility role.
+ * @returns {void}
+ */
+function renderResultsMessage(message, role = "status") {
+  const messageElement = document.createElement("p");
+
+  messageElement.className = "my-12 text-center text-base text-[#EBEBEB]";
+  messageElement.textContent = message;
+  messageElement.setAttribute("role", role);
+
+  if (resultsSection) {
+    resultsSection.replaceWith(messageElement);
+  } else {
+    app.append(messageElement);
+  }
+
+  resultsSection = messageElement;
+}
+
+/**
+ * Fetches and renders auction listings.
+ *
+ * @returns {Promise<void>}
+ */
+async function loadAuctionListings() {
+  renderResultsMessage("Loading auction listings...");
+
+  try {
+    landingState.listings = await fetchAuctionListings();
+    renderAuctionListings();
+  } catch (error) {
+    console.error(error);
+
+    renderResultsMessage(
+      "We could not load the auction listings. Please try again later.",
+      "alert"
+    );
+  }
+}
 
 /**
  * Renders listings using the current search and filter state.
@@ -116,4 +160,4 @@ app.append(Hero());
 app.append(searchBar);
 app.append(auctionFilter);
 
-renderAuctionListings();
+loadAuctionListings();
