@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "./config.js";
+import { getSession } from "../utils/session-storage.js";
 
 /**
  * @typedef {object} ApiResponse
@@ -34,19 +35,22 @@ export class ApiError extends Error {
  * Returns authentication headers from local storage.
  * @returns {Record<string, string>}
  */
+/**
+ * Returns authentication headers from the current session.
+ * @returns {Record<string, string>}
+ */
 function getAuthHeaders() {
-  const accessToken = globalThis.localStorage.getItem("accessToken");
-  const apiKey = globalThis.localStorage.getItem("apiKey");
+  const session = getSession();
 
   /** @type {Record<string, string>} */
   const headers = {};
 
-  if (accessToken) {
-    headers.Authorization = `Bearer ${accessToken}`;
+  if (session?.token) {
+    headers.Authorization = `Bearer ${session.token}`;
   }
 
-  if (apiKey) {
-    headers["X-Noroff-API-Key"] = apiKey;
+  if (session?.apiKey) {
+    headers["X-Noroff-API-Key"] = session.apiKey;
   }
 
   return headers;
