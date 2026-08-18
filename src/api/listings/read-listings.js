@@ -1,29 +1,30 @@
-const LISTINGS_URL = "https://v2.api.noroff.dev/auction/listings";
+import { apiRequest } from "../client.js";
+import { API_ENDPOINTS } from "../config.js";
 
 /**
  * Fetches active auction listings.
- * @returns {Promise<Array>} Auction listings
+ * @returns {Promise<Array>}
  */
 export async function fetchAuctionListings() {
-  const url = new URL(LISTINGS_URL);
+  const searchParams = new globalThis.URLSearchParams({
+    _active: "true",
+    _bids: "true",
+    limit: "12",
+    sort: "created",
+    sortOrder: "desc",
+  });
 
-  url.searchParams.set("_active", "true");
-  url.searchParams.set("_bids", "true");
-  url.searchParams.set("limit", "12");
-  url.searchParams.set("sort", "created");
-  url.searchParams.set("sortOrder", "desc");
+  const endpoint = `${API_ENDPOINTS.auction.listings}?${searchParams}`;
 
-  const response = await fetch(url);
+  const responseData = await apiRequest({
+    endpoint,
+  });
 
-  if (!response.ok) {
-    throw new Error(`Could not fetch listings: ${response.status}`);
-  }
+  const listings = responseData?.data;
 
-  const responseData = await response.json();
-
-  if (!Array.isArray(responseData.data)) {
+  if (!Array.isArray(listings)) {
     throw new Error("The API returned an unexpected response.");
   }
 
-  return responseData.data;
+  return listings;
 }
