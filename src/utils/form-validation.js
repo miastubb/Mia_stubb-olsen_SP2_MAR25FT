@@ -1,6 +1,73 @@
 const STUDENT_EMAIL_PATTERN = /^[^\s@]+@stud\.noroff\.no$/;
 
 /**
+ * Creates a minimum-length validator.
+ *
+ * Empty values are handled separately by the required validator.
+ *
+ * @param {number} minimum
+ * @param {string} fieldLabel
+ * @returns {Validator}
+ */
+export function minLength(minimum, fieldLabel = "This field") {
+  return (value) => {
+    if (typeof value !== "string" || value.length === 0) {
+      return "";
+    }
+
+    return value.length >= minimum
+      ? ""
+      : `${fieldLabel} must contain at least ${minimum} characters.`;
+  };
+}
+
+/**
+ * Creates a validator that checks a value against a regular expression.
+ *
+ * Empty values are handled separately by the required validator.
+ *
+ * @param {RegExp} pattern
+ * @param {string} message
+ * @returns {Validator}
+ */
+export function matchesPattern(pattern, message) {
+  return (value) => {
+    const text = normalizeText(value);
+
+    if (!text) {
+      return "";
+    }
+
+    return pattern.test(text) ? "" : message;
+  };
+}
+
+/**
+ * Creates a validator for optional HTTP or HTTPS URLs.
+ *
+ * @param {string} fieldLabel
+ * @returns {Validator}
+ */
+export function webUrl(fieldLabel = "URL") {
+  return (value) => {
+    const text = normalizeText(value);
+
+    if (!text) {
+      return "";
+    }
+
+    try {
+      const url = new URL(text);
+      const isWebUrl = url.protocol === "http:" || url.protocol === "https:";
+
+      return isWebUrl ? "" : `${fieldLabel} must be a valid web address.`;
+    } catch {
+      return `${fieldLabel} must be a valid web address.`;
+    }
+  };
+}
+
+/**
  * @typedef {(value: unknown) => string} Validator
  */
 
