@@ -1,5 +1,6 @@
 import gavelIcon from "../../assets/icons/gavel.svg";
 import { routes } from "../../utils/routes.js";
+import { initializeLoginForm } from "./login-form-handler.js";
 
 const html = String.raw;
 
@@ -16,7 +17,7 @@ const inputClass =
 /**
  * Creates the login-page content and form.
  *
- * The form uses native browser validation and does not connect to the API yet.
+ * The form uses reusable validation and submits through the login API.
  *
  * @param {LoginFormOptions} [options]
  * @returns {HTMLElement}
@@ -69,6 +70,7 @@ export function createLoginForm({ showRegistrationSuccess = false } = {}) {
         id="login-form"
         class="mx-auto mt-12 max-w-xl border border-neutral-800 bg-neutral-950 p-5 sm:p-10"
         method="post"
+        novalidate
       >
         ${successMessage}
 
@@ -105,7 +107,7 @@ export function createLoginForm({ showRegistrationSuccess = false } = {}) {
 
         <button
           type="submit"
-          class="mt-8 flex min-h-14 w-full items-center justify-center bg-(--color-primary) px-6 py-4 text-base font-bold uppercase tracking-wider text-black transition-colors hover:bg-(--color-secondary) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-primary)"
+          class="mt-8 flex min-h-14 w-full items-center justify-center bg-(--color-primary) px-6 py-4 text-base font-bold uppercase tracking-wider text-black transition-colors hover:bg-(--color-secondary) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-primary) disabled:cursor-not-allowed disabled:opacity-60"
         >
           Log in
         </button>
@@ -125,9 +127,9 @@ export function createLoginForm({ showRegistrationSuccess = false } = {}) {
 
   const form = section.querySelector("#login-form");
 
-  form?.addEventListener("submit", (event) => {
-    event.preventDefault();
-  });
+  if (form instanceof window.HTMLFormElement) {
+    initializeLoginForm(form);
+  }
 
   return section;
 }
