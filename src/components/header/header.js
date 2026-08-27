@@ -3,10 +3,62 @@ import loginIcon from "../../assets/icons/right-arrow.svg";
 import registerIcon from "../../assets/icons/user-plus.svg";
 import { routes } from "../../utils/routes.js";
 
+import { clearSession, getSession } from "../../utils/session-storage.js";
+
 const html = String.raw;
+
+/**
+ * Replaces visitor controls with Logout controls for an authenticated user.
+ *
+ * @param {HTMLElement} header
+ */
+function renderAuthenticationState(header) {
+  if (!getSession()) {
+    return;
+  }
+
+  header.querySelectorAll("[data-auth-controls]").forEach((controls) => {
+    const isMobile = controls.classList.contains("grid");
+
+    const buttonClass = isMobile
+      ? "col-span-2 flex h-13 w-full items-center justify-center gap-2 border border-neutral-700 text-base uppercase tracking-wider text-(--color-text)"
+      : "inline-flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap border border-neutral-700 px-4 text-base uppercase tracking-wider text-(--color-text) xl:px-6 xl:text-lg";
+
+    controls.innerHTML = html`
+      <button type="button" class="${buttonClass}" data-logout>
+        <img
+          src="${loginIcon}"
+          alt=""
+          class="h-4 w-4 rotate-180"
+          aria-hidden="true"
+        />
+        Log Out
+      </button>
+    `;
+  });
+}
+
+/**
+ * Connects the rendered Logout controls to the session utility.
+ *
+ * @param {HTMLElement} header
+ */
+function initializeLogout(header) {
+  header.querySelectorAll("[data-logout]").forEach((logoutButton) => {
+    logoutButton.addEventListener("click", () => {
+      clearSession();
+      renderHeader();
+      window.location.assign(routes.home);
+    });
+  });
+}
 
 export function renderHeader() {
   const header = document.querySelector("#site-header");
+
+  if (!(header instanceof window.HTMLElement)) {
+    return;
+  }
 
   header.innerHTML = html`
     <nav
@@ -60,7 +112,10 @@ export function renderHeader() {
         class="col-start-3 flex shrink-0 items-center justify-self-end gap-5"
       >
         <!-- Authentication -->
-        <div class="hidden shrink-0 items-center gap-2 md:flex xl:gap-3">
+        <div
+          class="hidden shrink-0 items-center gap-2 md:flex xl:gap-3"
+          data-auth-controls
+        >
           <a
             href="${routes.login}"
             class="inline-flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap border border-neutral-700 px-4 text-base uppercase tracking-wider text-(--color-text) xl:px-6 xl:text-lg"
@@ -131,6 +186,7 @@ export function renderHeader() {
 
         <div
           class="grid grid-cols-2 gap-2 border-t border-neutral-800 pt-5 md:hidden"
+          data-auth-controls
         >
           <a
             href="${routes.login}"
@@ -156,6 +212,9 @@ export function renderHeader() {
       </div>
     </div>
   `;
+
+  renderAuthenticationState(header);
+  initializeLogout(header);
 
   const menuButton = document.querySelector("#menu-button");
   const mobileMenu = document.querySelector("#mobile-menu");
