@@ -4,4 +4,5 @@ export const routes = {
   home: baseUrl,
   login: `${baseUrl}login/`,
   register: `${baseUrl}register/`,
+  profile: `${baseUrl}profile/`,
 };

@@ -1,5 +1,7 @@
+import { createApiKey } from "../../api/auth/create-api-key.js";
 import { loginUser } from "../../api/auth/login.js";
 import { ApiError } from "../../api/client.js";
+import { readProfile } from "../../api/profiles/read-profile.js";
 import {
   clearFormError,
   clearValidationErrors,
@@ -34,7 +36,16 @@ const loginRules = {
  * @property {string} [bio]
  * @property {Record<string, unknown>|null} [avatar]
  * @property {Record<string, unknown>|null} [banner]
- * @property {number} [credits]
+ */
+
+/**
+ * @typedef {object} AuctionProfile
+ * @property {string} name
+ * @property {number} credits
+ * @property {string} [email]
+ * @property {string} [bio]
+ * @property {Record<string, unknown>|null} [avatar]
+ * @property {Record<string, unknown>|null} [banner]
  */
 
 /**
@@ -55,24 +66,36 @@ function getLoginValues(form) {
 }
 
 /**
+ * Extracts an object from a standard API response.
+ *
+ * @param {unknown} response
+ * @returns {Record<string, unknown>|null}
+ */
+function getResponseData(response) {
+  if (!response || typeof response !== "object" || Array.isArray(response)) {
+    return null;
+  }
+
+  const data = /** @type {{data?: unknown}} */ (response).data;
+
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return null;
+  }
+
+  return /** @type {Record<string, unknown>} */ (data);
+}
+
+/**
  * Extracts and verifies the required login response properties.
  *
  * @param {unknown} response
  * @returns {LoginProfile|null}
  */
 function getLoginProfile(response) {
-  const data =
-    response && typeof response === "object" && !Array.isArray(response)
-      ? /** @type {{data?: unknown}} */ (response).data
-      : null;
-
-  if (!data || typeof data !== "object" || Array.isArray(data)) {
-    return null;
-  }
-
-  const profile = /** @type {Record<string, unknown>} */ (data);
+  const profile = getResponseData(response);
 
   if (
+    !profile ||
     typeof profile.accessToken !== "string" ||
     !profile.accessToken.trim() ||
     typeof profile.name !== "string" ||
@@ -81,24 +104,67 @@ function getLoginProfile(response) {
     return null;
   }
 
-  return /** @type {LoginProfile} */ (data);
+  return /** @type {LoginProfile} */ (profile);
+}
+
+/**
+ * Extracts and verifies an API key response.
+ *
+ * @param {unknown} response
+ * @returns {string|null}
+ */
+function getApiKey(response) {
+  const data = getResponseData(response);
+
+  if (!data || typeof data.key !== "string" || !data.key.trim()) {
+    return null;
+  }
+
+  return data.key;
+}
+
+/**
+ * Extracts and verifies the Auction House profile response.
+ *
+ * @param {unknown} response
+ * @param {string} expectedName
+ * @returns {AuctionProfile|null}
+ */
+function getAuctionProfile(response, expectedName) {
+  const profile = getResponseData(response);
+
+  if (
+    !profile ||
+    profile.name !== expectedName ||
+    typeof profile.credits !== "number" ||
+    !Number.isFinite(profile.credits)
+  ) {
+    return null;
+  }
+
+  return /** @type {AuctionProfile} */ (profile);
 }
 
 /**
  * Returns a safe user-facing login error.
  *
  * @param {unknown} error
+ * @param {"login"|"profile"} stage
  * @returns {string}
  */
-function getLoginErrorMessage(error) {
+function getLoginErrorMessage(error, stage) {
   if (error instanceof ApiError) {
-    if (error.status === 400 || error.status === 401) {
+    if (stage === "login" && (error.status === 400 || error.status === 401)) {
       return "Email or password is incorrect.";
     }
 
     if (error.status === 0) {
       return "Unable to connect. Please check your connection and try again.";
     }
+  }
+
+  if (stage === "profile") {
+    return "Login succeeded, but your auction profile could not be loaded. Please try again.";
   }
 
   return "Login failed. Please try again.";
@@ -161,17 +227,49 @@ export function initializeLoginForm(form) {
     isSubmitting = true;
     setSubmitting(form, submitButton, true);
 
-    try {
-      const response = await loginUser(values);
-      const profile = getLoginProfile(response);
+    /** @type {"login"|"profile"} */
+    let requestStage = "login";
 
-      if (!profile) {
+    try {
+      const loginResponse = await loginUser(values);
+      const loginProfile = getLoginProfile(loginResponse);
+
+      if (!loginProfile) {
         throw new Error("Invalid login response.");
       }
 
+      requestStage = "profile";
+
+      const apiKeyResponse = await createApiKey(
+        loginProfile.accessToken,
+        "Provenance"
+      );
+      const apiKey = getApiKey(apiKeyResponse);
+
+      if (!apiKey) {
+        throw new Error("API key could not be created.");
+      }
+
+      const profileResponse = await readProfile(loginProfile.name, {
+        token: loginProfile.accessToken,
+        apiKey,
+      });
+      const auctionProfile = getAuctionProfile(
+        profileResponse,
+        loginProfile.name
+      );
+
+      if (!auctionProfile) {
+        throw new Error("Invalid auction profile response.");
+      }
+
       const session = saveSession({
-        token: profile.accessToken,
-        profile,
+        token: loginProfile.accessToken,
+        apiKey,
+        profile: {
+          ...loginProfile,
+          ...auctionProfile,
+        },
       });
 
       if (!session) {
@@ -180,7 +278,7 @@ export function initializeLoginForm(form) {
 
       window.location.assign(routes.home);
     } catch (error) {
-      showFormError(form, getLoginErrorMessage(error));
+      showFormError(form, getLoginErrorMessage(error, requestStage));
 
       const passwordField = form.elements.namedItem("password");
 

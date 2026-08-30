@@ -14,6 +14,8 @@ import { getSession } from "../utils/session-storage.js";
  * @property {string} [method]
  * @property {unknown} [body]
  * @property {boolean} [auth]
+ * @property {string} [token]
+ * @property {string} [apiKey]
  */
 
 export class ApiError extends Error {
@@ -32,25 +34,28 @@ export class ApiError extends Error {
 }
 
 /**
- * Returns authentication headers from local storage.
+ * Returns authentication headers from supplied credentials or the current session.
+ *
+ * @param {string} [token]
+ * @param {string} [apiKey]
  * @returns {Record<string, string>}
  */
-/**
- * Returns authentication headers from the current session.
- * @returns {Record<string, string>}
- */
-function getAuthHeaders() {
-  const session = getSession();
+function getAuthHeaders(token, apiKey) {
+  const session =
+    token === undefined && apiKey === undefined ? getSession() : null;
+
+  const authToken = token ?? session?.token;
+  const authApiKey = apiKey ?? session?.apiKey;
 
   /** @type {Record<string, string>} */
   const headers = {};
 
-  if (session?.token) {
-    headers.Authorization = `Bearer ${session.token}`;
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
   }
 
-  if (session?.apiKey) {
-    headers["X-Noroff-API-Key"] = session.apiKey;
+  if (authApiKey) {
+    headers["X-Noroff-API-Key"] = authApiKey;
   }
 
   return headers;
@@ -58,6 +63,7 @@ function getAuthHeaders() {
 
 /**
  * Safely parses a JSON response.
+ *
  * @param {Response} response
  * @returns {Promise<ApiResponse|null>}
  */
@@ -75,6 +81,7 @@ async function parseResponse(response) {
 
 /**
  * Sends a request to the Noroff API.
+ *
  * @param {ApiRequestOptions} options
  * @returns {Promise<ApiResponse|null>}
  */
@@ -83,6 +90,8 @@ export async function apiRequest({
   method = "GET",
   body,
   auth = false,
+  token,
+  apiKey,
 }) {
   /** @type {Record<string, string>} */
   const headers = {
@@ -94,7 +103,7 @@ export async function apiRequest({
   }
 
   if (auth) {
-    Object.assign(headers, getAuthHeaders());
+    Object.assign(headers, getAuthHeaders(token, apiKey));
   }
 
   let response;
