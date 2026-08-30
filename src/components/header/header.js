@@ -8,24 +8,60 @@ import { clearSession, getSession } from "../../utils/session-storage.js";
 const html = String.raw;
 
 /**
- * Replaces visitor controls with Logout controls for an authenticated user.
+ * Renders visitor or authenticated controls from the current session.
  *
  * @param {HTMLElement} header
  */
 function renderAuthenticationState(header) {
-  if (!getSession()) {
-    return;
-  }
+  const session = getSession();
 
   header.querySelectorAll("[data-auth-controls]").forEach((controls) => {
     const isMobile = controls.classList.contains("grid");
 
-    const buttonClass = isMobile
-      ? "col-span-2 flex h-13 w-full items-center justify-center gap-2 border border-neutral-700 text-base uppercase tracking-wider text-(--color-text)"
+    const secondaryActionClass = isMobile
+      ? "flex h-13 items-center justify-center gap-2 border border-neutral-700 text-base uppercase tracking-wider text-(--color-text)"
       : "inline-flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap border border-neutral-700 px-4 text-base uppercase tracking-wider text-(--color-text) xl:px-6 xl:text-lg";
 
+    const primaryActionClass = isMobile
+      ? "flex h-13 items-center justify-center gap-2 bg-(--color-primary) text-base uppercase tracking-wider text-black"
+      : "inline-flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap bg-(--color-primary) px-4 text-base uppercase tracking-wider text-black xl:px-6 xl:text-lg";
+
+    if (!session) {
+      controls.innerHTML = html`
+        <a href="${routes.login}" class="${secondaryActionClass}">
+          <img src="${loginIcon}" alt="" class="h-4 w-4" aria-hidden="true" />
+          Log In
+        </a>
+
+        <a href="${routes.register}" class="${primaryActionClass}">
+          <img
+            src="${registerIcon}"
+            alt=""
+            class="h-4 w-4"
+            aria-hidden="true"
+          />
+          Register
+        </a>
+      `;
+
+      return;
+    }
+
+    const creditText =
+      typeof session.profile.credits === "number"
+        ? `${session.profile.credits.toLocaleString("en-US")} Credits`
+        : "Credits unavailable";
+
+    const creditClass = isMobile
+      ? "col-span-2 text-center text-base uppercase tracking-wider text-amber-400"
+      : "shrink-0 whitespace-nowrap text-base uppercase tracking-wider text-amber-400 xl:text-lg";
+
     controls.innerHTML = html`
-      <button type="button" class="${buttonClass}" data-logout>
+      <span class="${creditClass}">${creditText}</span>
+
+      <a href="${routes.profile}" class="${primaryActionClass}"> Profile </a>
+
+      <button type="button" class="${secondaryActionClass}" data-logout>
         <img
           src="${loginIcon}"
           alt=""
@@ -37,7 +73,6 @@ function renderAuthenticationState(header) {
     `;
   });
 }
-
 /**
  * Connects the rendered Logout controls to the session utility.
  *
@@ -47,7 +82,7 @@ function initializeLogout(header) {
   header.querySelectorAll("[data-logout]").forEach((logoutButton) => {
     logoutButton.addEventListener("click", () => {
       clearSession();
-      renderHeader();
+      renderAuthenticationState(header);
       window.location.assign(routes.home);
     });
   });
@@ -115,28 +150,7 @@ export function renderHeader() {
         <div
           class="hidden shrink-0 items-center gap-2 md:flex xl:gap-3"
           data-auth-controls
-        >
-          <a
-            href="${routes.login}"
-            class="inline-flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap border border-neutral-700 px-4 text-base uppercase tracking-wider text-(--color-text) xl:px-6 xl:text-lg"
-          >
-            <img src="${loginIcon}" alt="" class="h-4 w-4" aria-hidden="true" />
-            Log In
-          </a>
-
-          <a
-            href="${routes.register}"
-            class="inline-flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap bg-(--color-primary) px-4 text-base uppercase tracking-wider text-black xl:px-6 xl:text-lg"
-          >
-            <img
-              src="${registerIcon}"
-              alt=""
-              class="h-4 w-4"
-              aria-hidden="true"
-            />
-            Register
-          </a>
-        </div>
+        ></div>
 
         <!-- Mobile and tablet menu button -->
         <button
@@ -187,28 +201,7 @@ export function renderHeader() {
         <div
           class="grid grid-cols-2 gap-2 border-t border-neutral-800 pt-5 md:hidden"
           data-auth-controls
-        >
-          <a
-            href="${routes.login}"
-            class="flex h-13 items-center justify-center gap-2 border border-neutral-700 text-base uppercase tracking-wider text-(--color-text)"
-          >
-            <img src="${loginIcon}" alt="" class="h-4 w-4" aria-hidden="true" />
-            Log In
-          </a>
-
-          <a
-            href="${routes.register}"
-            class="flex h-13 items-center justify-center gap-2 bg-(--color-primary) text-base uppercase tracking-wider text-black"
-          >
-            <img
-              src="${registerIcon}"
-              alt=""
-              class="h-4 w-4"
-              aria-hidden="true"
-            />
-            Register
-          </a>
-        </div>
+        ></div>
       </div>
     </div>
   `;

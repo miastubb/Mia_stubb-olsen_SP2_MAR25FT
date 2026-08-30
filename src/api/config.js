@@ -8,5 +8,6 @@ export const API_ENDPOINTS = {
   },
   auction: {
     listings: "/auction/listings",
+    profiles: "/auction/profiles",
   },
 };
