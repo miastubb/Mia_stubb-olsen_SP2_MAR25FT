@@ -9,5 +9,6 @@ export default defineConfig({
     main: resolve(import.meta.dirname, "index.html"),
     login: resolve(import.meta.dirname, "login/index.html"),
     register: resolve(import.meta.dirname, "register/index.html"),
+    profile: resolve(import.meta.dirname, "profile/index.html"),
   },
 });
