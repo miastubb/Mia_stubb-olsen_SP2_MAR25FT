@@ -1,3 +1,5 @@
+import { createAuctionCard } from "../auction-card/auction-card.js";
+
 const html = String.raw;
 
 /**
@@ -39,14 +41,35 @@ function initializeProfileTabs(profile) {
   });
 }
 /**
+ * Returns unique listings associated with the user's bids.
+ *
+ * @param {Array} bids
+ * @returns {Array}
+ */
+function getBidListings(bids) {
+  const listings = bids
+    .map((bid) => bid.listing)
+    .filter((listing) => listing?.id);
+
+  return Array.from(
+    new Map(listings.map((listing) => [listing.id, listing])).values()
+  );
+}
+/**
  * Creates the authenticated user's profile page.
  *
- * @param {ReturnType<import("../../utils/session-storage.js").getSession>} session
+ * @param {Object} data
+ * @param {Object} data.user
+ * @param {Array} data.listings
+ * @param {Array} data.bids
  * @returns {HTMLElement}
  */
-export function createProfile(session) {
+export function createProfile({ user, listings = [], bids = [] }) {
   const profile = document.createElement("section");
-  const user = session.profile;
+  const bidListings = getBidListings(bids);
+
+  const listingCount = listings.length;
+  const bidCount = bids.length;
 
   const avatarUrl = getMediaUrl(user.avatar);
   const bannerUrl = getMediaUrl(user.banner);
@@ -110,14 +133,16 @@ export function createProfile(session) {
             <dl class="mt-8 flex flex-wrap gap-10">
               <div>
                 <dt class="text-sm text-neutral-400 sm:text-base">Listings</dt>
-                <dd class="order-first text-xl font-semibold">0</dd>
+                <dd class="order-first text-xl font-semibold">
+                  ${listingCount}
+                </dd>
               </div>
 
               <div>
                 <dt class="text-sm text-neutral-400 sm:text-base">
                   Bids Placed
                 </dt>
-                <dd class="order-first text-xl font-semibold">0</dd>
+                <dd class="order-first text-xl font-semibold">${bidCount}</dd>
               </div>
 
               <div>
@@ -167,7 +192,7 @@ export function createProfile(session) {
           aria-controls="my-listings-panel"
           id="my-listings-tab"
         >
-          My Listings (0)
+          My Listings (${listingCount})
         </button>
 
         <button
@@ -178,7 +203,7 @@ export function createProfile(session) {
           aria-controls="my-bids-panel"
           id="my-bids-tab"
         >
-          My Bids (0)
+          My Bids (${bidListings.length})
         </button>
       </div>
 
@@ -188,32 +213,49 @@ export function createProfile(session) {
         role="tabpanel"
         aria-labelledby="my-listings-tab"
       >
-        <button
-          type="button"
-          class="flex min-h-80 w-full max-w-90 flex-col items-center justify-center gap-6 border border-dashed border-neutral-800 uppercase tracking-wider text-neutral-300"
-          data-create-listing
-        >
-          <span
-            class="flex h-15 w-15 items-center justify-center rounded-full border border-neutral-700 text-3xl"
-            aria-hidden="true"
-          >
-            +
-          </span>
-
-          <span>New Listing</span>
-        </button>
+        <div
+          class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
+          data-profile-listings
+        ></div>
       </div>
-
       <div
         id="my-bids-panel"
         class="hidden px-6 py-10 sm:px-10"
         role="tabpanel"
         aria-labelledby="my-bids-tab"
       >
-        <p class="text-neutral-400">You haven't placed any bids yet.</p>
+        <div
+          class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
+          data-profile-bids
+        ></div>
       </div>
     </section>
   `;
+  const listingsContainer = profile.querySelector("[data-profile-listings]");
+  const bidsContainer = profile.querySelector("[data-profile-bids]");
+
+  if (listings.length > 0) {
+    listings.forEach((listing) => {
+      listingsContainer.append(createAuctionCard(listing));
+    });
+  } else {
+    const emptyState = document.createElement("p");
+    emptyState.className = "text-neutral-400";
+    emptyState.textContent = "You haven't created any listings yet.";
+    listingsContainer.append(emptyState);
+  }
+
+  if (bidListings.length > 0) {
+    bidListings.forEach((listing) => {
+      bidsContainer.append(createAuctionCard(listing));
+    });
+  } else {
+    const emptyState = document.createElement("p");
+    emptyState.className = "text-neutral-400";
+    emptyState.textContent = "You haven't placed any bids yet.";
+    bidsContainer.append(emptyState);
+  }
+
   initializeProfileTabs(profile);
   return profile;
 }
