@@ -1,3 +1,10 @@
+import {
+  formatTimeRemaining,
+  getAuctionStatus,
+  getCurrentBid,
+} from "../../utils/auction.js";
+import { routes } from "../../utils/routes.js";
+
 /**
  * @typedef {Object} AuctionMedia
  * @property {string} url - Public URL for the media item.
@@ -22,57 +29,6 @@
  * @property {AuctionBid[]} [bids] - Bids included using the `_bids=true` query.
  * @property {{ bids?: number }} [_count] - Aggregate listing counts.
  */
-function getCurrentBid(bids = []) {
-  return bids.reduce((highestBid, bid) => {
-    return Math.max(highestBid, Number(bid.amount) || 0);
-  }, 0);
-}
-
-/**
- * Formats the remaining auction duration as hours, minutes, and seconds.
- *
- * @param {string} endsAt - ISO date when the auction ends.
- * @returns {string} Time formatted as `HH:MM:SS`, or `ENDED`.
- */
-
-function formatTimeRemaining(endsAt) {
-  const remainingTime = new Date(endsAt).getTime() - Date.now();
-
-  if (Number.isNaN(remainingTime) || remainingTime <= 0) {
-    return "ENDED";
-  }
-
-  const totalSeconds = Math.floor(remainingTime / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  return [hours, minutes, seconds]
-    .map((value) => String(value).padStart(2, "0"))
-    .join(":");
-}
-
-/**
- * Determines whether an auction has ended or is ending within 24 hours.
- *
- * @param {string} endsAt - ISO date when the auction ends.
- * @returns {"ENDED" | "ENDING" | ""} The current auction status.
- */
-
-function getAuctionStatus(endsAt) {
-  const remainingTime = new Date(endsAt).getTime() - Date.now();
-
-  if (remainingTime <= 0) {
-    return "ENDED";
-  }
-
-  if (remainingTime <= 24 * 60 * 60 * 1000) {
-    return "ENDING";
-  }
-
-  return "";
-}
-
 /**
  * Creates a summary card for an auction listing.
  *
@@ -183,6 +139,24 @@ export function createAuctionCard(listing) {
     photoElement.textContent = `+${extraPhotoCount} photos`;
     photoElement.classList.remove("hidden");
   }
+
+  card.tabIndex = 0;
+  card.setAttribute("role", "link");
+
+  const openListing = () => {
+    const listingUrl = new URL(routes.listing, globalThis.location.origin);
+    listingUrl.searchParams.set("id", listing.id);
+
+    globalThis.location.assign(listingUrl.toString());
+  };
+
+  card.addEventListener("click", openListing);
+
+  card.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      openListing();
+    }
+  });
 
   return card;
 }
