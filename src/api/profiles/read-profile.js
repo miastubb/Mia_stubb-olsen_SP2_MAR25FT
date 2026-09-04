@@ -5,12 +5,15 @@ import { API_ENDPOINTS } from "../config.js";
  * Retrieves one Auction House profile.
  *
  * @param {string} name
+ * @param {{ token?: string, apiKey?: string }} [credentials]
  * @returns {Promise<object>}
  */
-export async function readProfile(name) {
+export async function readProfile(name, credentials = {}) {
   return apiRequest({
     endpoint: `${API_ENDPOINTS.auction.profiles}/${encodeURIComponent(name)}`,
     auth: true,
+    token: credentials.token,
+    apiKey: credentials.apiKey,
   });
 }
 
