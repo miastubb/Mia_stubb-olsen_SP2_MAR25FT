@@ -11,5 +11,6 @@ export default defineConfig({
     register: resolve(import.meta.dirname, "register/index.html"),
     profile: resolve(import.meta.dirname, "profile/index.html"),
     listing: resolve(import.meta.dirname, "listing/index.html"),
+    createListing: resolve(import.meta.dirname, "create-listing/index.html"),
   },
 });
