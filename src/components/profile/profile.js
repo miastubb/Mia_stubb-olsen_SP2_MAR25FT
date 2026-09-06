@@ -1,4 +1,5 @@
 import { createAuctionCard } from "../auction-card/auction-card.js";
+import { routes } from "../../utils/routes.js";
 
 const html = String.raw;
 
@@ -18,6 +19,11 @@ function getMediaUrl(media) {
  * @returns {void}
  */
 function initializeProfileTabs(profile) {
+  const createListingButton = profile.querySelector("[data-create-listing]");
+
+  createListingButton?.addEventListener("click", () => {
+    globalThis.location.assign(routes.createListing);
+  });
   const tabs = profile.querySelectorAll('[role="tab"]');
   const panels = profile.querySelectorAll('[role="tabpanel"]');
 

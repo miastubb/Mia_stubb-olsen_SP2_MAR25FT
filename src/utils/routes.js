@@ -8,4 +8,5 @@ export const routes = {
   register: `${baseUrl}register/`,
   profile: `${baseUrl}profile/`,
   listing: `${baseUrl}listing/`,
+  createListing: `${baseUrl}create-listing/`,
 };

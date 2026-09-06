@@ -95,9 +95,11 @@ export function renderHeader() {
     return;
   }
 
+  header.className = "sticky top-0 z-50 bg-(--color-background)";
+
   header.innerHTML = html`
     <nav
-      class="grid grid-cols-[auto_1fr_auto] items-center px-4 py-5 sm:px-6 lg:px-4 xl:px-10"
+      class="grid grid-cols-[auto_1fr_auto] items-center border-b border-neutral-900 bg-(--color-background) px-4 py-5 sm:px-6 lg:px-4 xl:px-10"
       aria-label="Main navigation"
     >
       <!-- Brand -->
