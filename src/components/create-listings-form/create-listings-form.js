@@ -162,6 +162,11 @@ export function createListingForm() {
     <div
   class="flex flex-col gap-3 border-t border-white/10 pt-7 sm:flex-row"
 >
+<p
+  class="min-h-5 text-sm text-red-400"
+  data-error-for="form"
+  aria-live="polite"
+></p>
   <button
     type="submit"
     class="min-h-12 bg-(--color-primary) px-10 font-mono font-semibold uppercase tracking-wide text-black"
