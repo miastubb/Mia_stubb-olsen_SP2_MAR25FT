@@ -113,7 +113,10 @@ export function createProfile({ user, listings = [], bids = [] }) {
           class="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between"
         >
           <div>
-            <h1 id="profile-heading" class="text-3xl font-semibold sm:text-4xl">
+            <h1
+              id="profile-heading"
+              class="text-[28px] font-normal italic leading-none md:text-[30px]"
+            >
               ${user.name}
             </h1>
 
