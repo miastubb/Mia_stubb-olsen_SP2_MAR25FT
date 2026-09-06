@@ -1,5 +1,7 @@
 import { createAuctionCard } from "../auction-card/auction-card.js";
 import { routes } from "../../utils/routes.js";
+import { createEditProfileForm } from "../edit-profile/edit-profile.js";
+import { setupEditProfileForm } from "../edit-profile/edit-profile-handler.js";
 
 const html = String.raw;
 
@@ -20,9 +22,24 @@ function getMediaUrl(media) {
  */
 function initializeProfileTabs(profile) {
   const createListingButton = profile.querySelector("[data-create-listing]");
+  const editProfileButton = profile.querySelector("[data-edit-profile]");
 
   createListingButton?.addEventListener("click", () => {
     globalThis.location.assign(routes.createListing);
+  });
+
+  editProfileButton?.addEventListener("click", () => {
+    const profileDetails = profile.querySelector("[data-profile-details]");
+    const editContainer = profile.querySelector(
+      "[data-edit-profile-container]"
+    );
+
+    if (!profileDetails || !editContainer) {
+      return;
+    }
+
+    profileDetails.classList.add("hidden");
+    editContainer.classList.remove("hidden");
   });
   const tabs = profile.querySelectorAll('[role="tab"]');
   const panels = profile.querySelectorAll('[role="tabpanel"]');
@@ -110,6 +127,7 @@ export function createProfile({ user, listings = [], bids = [] }) {
 
       <div class="px-6 pt-18 pb-10 sm:px-10 sm:pt-20">
         <div
+          data-profile-details
           class="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between"
         >
           <div>
@@ -179,67 +197,90 @@ export function createProfile({ user, listings = [], bids = [] }) {
             </button>
           </div>
         </div>
+
+        <div data-edit-profile-container class="hidden max-w-3xl"></div>
       </div>
-    </section>
-
-    <section
-      class="border-t border-neutral-900"
-      aria-labelledby="profile-activity-heading"
-    >
-      <h2 id="profile-activity-heading" class="sr-only">Profile activity</h2>
-
-      <div
-        class="flex gap-8 border-b border-neutral-800 px-6 sm:px-10"
-        role="tablist"
-        aria-label="Profile activity"
+      <section
+        class="border-t border-neutral-900"
+        aria-labelledby="profile-activity-heading"
       >
-        <button
-          type="button"
-          class="border-b-2 border-(--color-primary) px-2 py-5 uppercase tracking-wider text-(--color-primary)"
-          role="tab"
-          aria-selected="true"
-          aria-controls="my-listings-panel"
-          id="my-listings-tab"
-        >
-          My Listings (${listingCount})
-        </button>
+        <h2 id="profile-activity-heading" class="sr-only">Profile activity</h2>
 
-        <button
-          type="button"
-          class="px-2 py-5 uppercase tracking-wider text-neutral-400"
-          role="tab"
-          aria-selected="false"
-          aria-controls="my-bids-panel"
-          id="my-bids-tab"
-        >
-          My Bids (${bidListings.length})
-        </button>
-      </div>
-
-      <div
-        id="my-listings-panel"
-        class="px-6 py-10 sm:px-10"
-        role="tabpanel"
-        aria-labelledby="my-listings-tab"
-      >
         <div
-          class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
-          data-profile-listings
-        ></div>
-      </div>
-      <div
-        id="my-bids-panel"
-        class="hidden px-6 py-10 sm:px-10"
-        role="tabpanel"
-        aria-labelledby="my-bids-tab"
-      >
+          class="flex gap-8 border-b border-neutral-800 px-6 sm:px-10"
+          role="tablist"
+          aria-label="Profile activity"
+        >
+          <button
+            type="button"
+            class="border-b-2 border-(--color-primary) px-2 py-5 uppercase tracking-wider text-(--color-primary)"
+            role="tab"
+            aria-selected="true"
+            aria-controls="my-listings-panel"
+            id="my-listings-tab"
+          >
+            My Listings (${listingCount})
+          </button>
+
+          <button
+            type="button"
+            class="px-2 py-5 uppercase tracking-wider text-neutral-400"
+            role="tab"
+            aria-selected="false"
+            aria-controls="my-bids-panel"
+            id="my-bids-tab"
+          >
+            My Bids (${bidListings.length})
+          </button>
+        </div>
+
         <div
-          class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
-          data-profile-bids
-        ></div>
-      </div>
+          id="my-listings-panel"
+          class="px-6 py-10 sm:px-10"
+          role="tabpanel"
+          aria-labelledby="my-listings-tab"
+        >
+          <div
+            class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
+            data-profile-listings
+          ></div>
+        </div>
+        <div
+          id="my-bids-panel"
+          class="hidden px-6 py-10 sm:px-10"
+          role="tabpanel"
+          aria-labelledby="my-bids-tab"
+        >
+          <div
+            class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
+            data-profile-bids
+          ></div>
+        </div>
+      </section>
     </section>
   `;
+  const editContainer = profile.querySelector("[data-edit-profile-container]");
+
+  if (editContainer) {
+    const editForm = createEditProfileForm(user);
+
+    editContainer.append(editForm);
+
+    setupEditProfileForm(editForm, user.name, async () => {
+      globalThis.location.reload();
+    });
+
+    const cancelEditButton = editForm.querySelector(
+      "[data-cancel-edit-profile]"
+    );
+
+    cancelEditButton?.addEventListener("click", () => {
+      const profileDetails = profile.querySelector("[data-profile-details]");
+
+      editContainer.classList.add("hidden");
+      profileDetails?.classList.remove("hidden");
+    });
+  }
   const listingsContainer = profile.querySelector("[data-profile-listings]");
   const bidsContainer = profile.querySelector("[data-profile-bids]");
 
