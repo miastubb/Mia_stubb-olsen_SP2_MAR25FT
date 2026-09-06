@@ -3,6 +3,7 @@ import "../../global.css";
 import "../../variables.css";
 import { createListingDetails } from "../../components/listing-details/listing-details.js";
 import { getSession } from "../../utils/session-storage.js";
+import { setupBidHandler } from "../../components/listing-details/listing-bid-handler.js";
 
 import { readListing } from "../../api/listings/read-listing.js";
 import { renderHeader } from "../../components/header/header.js";
@@ -62,7 +63,24 @@ async function loadListing(container) {
     const listing = await readListing(listingId);
     const session = getSession();
 
-    container.replaceChildren(createListingDetails(listing, Boolean(session)));
+    const listingDetails = createListingDetails(listing, Boolean(session));
+
+    container.replaceChildren(listingDetails);
+
+    if (session) {
+      setupBidHandler(listingDetails, {
+        listingId,
+        currentBid: Math.max(
+          0,
+          ...(Array.isArray(listing.bids)
+            ? listing.bids.map((bid) => Number(bid.amount) || 0)
+            : [])
+        ),
+        onSuccess: async () => {
+          await loadListing(container);
+        },
+      });
+    }
   } catch {
     container.innerHTML = `
       <section class="px-6 py-16 sm:px-10" role="alert">

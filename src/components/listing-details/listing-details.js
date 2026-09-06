@@ -153,7 +153,7 @@ export function createListingDetails(listing, isAuthenticated = false) {
   renderListingContent(section, listing, status);
   renderBidHistory(section, bids);
   renderBidSummary(section, bids, currentBid, bidCount);
-  renderBidControls(section, isAuthenticated, isExpired);
+  renderBidControls(section, isAuthenticated, isExpired, currentBid);
 
   return section;
 }
@@ -411,14 +411,13 @@ function renderBidSummary(section, bids, currentBid, bidCount) {
 /**
  * Renders bidding controls based on authentication and auction status.
  *
- * This ticket only renders the bidding interface. It does not submit bids.
- *
+ * @param {number} currentBid - Current highest bid amount.
  * @param {HTMLElement} section - Listing details root element.
  * @param {boolean} isAuthenticated - Whether the viewer is authenticated.
  * @param {boolean} isExpired - Whether the auction has ended.
  * @returns {void}
  */
-function renderBidControls(section, isAuthenticated, isExpired) {
+function renderBidControls(section, isAuthenticated, isExpired, currentBid) {
   const container = section.querySelector("[data-listing-bid-controls]");
 
   if (!container) {
@@ -445,9 +444,15 @@ function renderBidControls(section, isAuthenticated, isExpired) {
     return;
   }
 
+  const form = document.createElement("form");
   const label = document.createElement("label");
   const input = document.createElement("input");
   const button = document.createElement("button");
+  const feedback = document.createElement("p");
+
+  const minimumBid = currentBid + 1;
+
+  form.dataset.bidForm = "";
 
   label.htmlFor = "bid-amount";
   label.className = "block font-mono text-sm uppercase text-neutral-400";
@@ -456,16 +461,26 @@ function renderBidControls(section, isAuthenticated, isExpired) {
   input.id = "bid-amount";
   input.name = "amount";
   input.type = "number";
-  input.min = "1";
+  input.min = String(minimumBid);
+  input.step = "1";
   input.inputMode = "numeric";
+  input.required = true;
+  input.dataset.bidInput = "";
   input.className =
     "mt-2 w-full border border-white/20 bg-transparent px-4 py-3 text-white";
+  input.placeholder = `Minimum ${minimumBid} credits`;
 
-  button.type = "button";
+  button.type = "submit";
   button.disabled = true;
+  button.dataset.bidSubmit = "";
   button.className =
     "mt-4 w-full cursor-not-allowed bg-orange-500 px-4 py-3 font-mono font-semibold uppercase text-black opacity-60";
   button.textContent = "Place bid";
 
-  container.append(label, input, button);
+  feedback.dataset.bidFeedback = "";
+  feedback.className = "mt-3 min-h-6 text-sm text-neutral-400";
+  feedback.setAttribute("aria-live", "polite");
+
+  form.append(label, input, button, feedback);
+  container.append(form);
 }
