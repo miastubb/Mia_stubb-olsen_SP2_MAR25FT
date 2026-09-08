@@ -56,9 +56,14 @@ function formatDate(value) {
  *
  * @param {ListingDetails} listing - Auction listing to render.
  * @param {boolean} [isAuthenticated=false] - Whether bidding controls may display.
+ * @param {boolean} [isOwner=false] - Whether the current user owns the listing.
  * @returns {HTMLElement} Completed listing details element.
  */
-export function createListingDetails(listing, isAuthenticated = false) {
+export function createListingDetails(
+  listing,
+  isAuthenticated = false,
+  isOwner = false
+) {
   const section = document.createElement("section");
 
   const media = Array.isArray(listing.media) ? listing.media : [];
@@ -81,14 +86,14 @@ export function createListingDetails(listing, isAuthenticated = false) {
           <div data-listing-tags class="flex flex-wrap gap-2"></div>
 
           <h1
-            data-listing-title
-            class="mt-4 text-3xl font-semibold sm:text-4xl"
-          ></h1>
+  data-listing-title
+  class="mt-4 text-3xl font-semibold sm:text-4xl"
+></h1>
 
-          <p
-            data-listing-description
-            class="mt-6 max-w-3xl leading-7 text-neutral-300"
-          ></p>
+<div data-listing-owner-controls class="mt-5"></div>
+
+<p
+  data-listing-description
 
           <dl
             class="mt-8 grid gap-6 border-y border-white/10 py-6 sm:grid-cols-2"
@@ -151,6 +156,7 @@ export function createListingDetails(listing, isAuthenticated = false) {
   renderMedia(section, listing, media);
   renderTags(section, tags);
   renderListingContent(section, listing, status);
+  renderOwnerControls(section, isOwner);
   renderBidHistory(section, bids);
   renderBidSummary(section, bids, currentBid, bidCount);
   renderBidControls(section, isAuthenticated, isExpired, currentBid);
@@ -318,6 +324,39 @@ function renderListingContent(section, listing, status) {
   if (statusElement) {
     statusElement.textContent = status || "ACTIVE";
   }
+}
+
+/**
+ * Renders listing management controls for the listing owner.
+ *
+ * @param {HTMLElement} section - Listing details root element.
+ * @param {boolean} isOwner - Whether the current user owns the listing.
+ * @returns {void}
+ */
+function renderOwnerControls(section, isOwner) {
+  const container = section.querySelector("[data-listing-owner-controls]");
+
+  if (!container || !isOwner) {
+    return;
+  }
+
+  const editButton = document.createElement("button");
+  const deleteButton = document.createElement("button");
+
+  editButton.type = "button";
+  editButton.dataset.editListing = "";
+  editButton.className =
+    "border border-white/20 px-4 py-2 font-mono text-sm uppercase transition-colors hover:border-white";
+  editButton.textContent = "Edit listing";
+
+  deleteButton.type = "button";
+  deleteButton.dataset.deleteListing = "";
+  deleteButton.className =
+    "border border-red-500/50 px-4 py-2 font-mono text-sm uppercase text-red-400 transition-colors hover:border-red-400";
+  deleteButton.textContent = "Delete listing";
+
+  container.className = "mt-5 flex flex-wrap gap-3";
+  container.append(editButton, deleteButton);
 }
 
 /**
