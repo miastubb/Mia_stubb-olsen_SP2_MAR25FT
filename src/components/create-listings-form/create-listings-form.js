@@ -7,11 +7,12 @@ import { routes } from "../../utils/routes.js";
  *
  * @returns {HTMLFormElement}
  */
-export function createListingForm() {
+export function createListingForm({ mode = "create", listing = null } = {}) {
   const form = document.createElement("form");
 
   form.className = "mt-10 space-y-7";
   form.noValidate = true;
+  const isEditMode = mode === "edit";
 
   form.innerHTML = `
     <div>
@@ -119,6 +120,9 @@ export function createListingForm() {
       </p>
     </div>
 
+    ${
+      !isEditMode
+        ? `
     <div>
       <label
         for="listing-deadline"
@@ -141,23 +145,32 @@ export function createListingForm() {
         aria-live="polite"
       ></p>
     </div>
-
+  `
+        : ""
+    }
+   ${
+     !isEditMode
+       ? `
     <div
-  class="grid gap-4 border border-white/10 bg-neutral-950 p-5 sm:grid-cols-[auto_1fr] sm:items-center"
->
-  <div>
-    <p class="font-mono text-sm text-neutral-400">
-      Current Bids
-    </p>
-    <p class="mt-1 font-mono text-2xl font-semibold text-white">
-      0
-    </p>
-  </div>
+      class="grid gap-4 border border-white/10 bg-neutral-950 p-5 sm:grid-cols-[auto_1fr] sm:items-center"
+    >
+      <div>
+        <p class="font-mono text-sm text-neutral-400">
+          Current Bids
+        </p>
 
-  <p class="text-sm leading-6 text-neutral-500">
-    Starts at zero. Bidders can place bids once the listing is published.
-  </p>
-</div>
+        <p class="mt-1 font-mono text-2xl font-semibold text-white">
+          0
+        </p>
+      </div>
+
+      <p class="text-sm leading-6 text-neutral-500">
+        Starts at zero. Bidders can place bids once the listing is published.
+      </p>
+    </div>
+  `
+       : ""
+   }
 
     <div
   class="flex flex-col gap-3 border-t border-white/10 pt-7 sm:flex-row"
@@ -171,23 +184,57 @@ export function createListingForm() {
     type="submit"
     class="min-h-12 bg-(--color-primary) px-10 font-mono font-semibold uppercase tracking-wide text-black"
   >
-    Publish listing
+   ${isEditMode ? "Save changes" : "Publish listing"}
   </button>
 
   <button
     type="button"
-    data-cancel-create-listing
+    data-cancel-listing-form
     class="min-h-12 border border-white/15 px-8 font-mono uppercase tracking-wide text-neutral-300 hover:text-white"
   >
     Cancel
   </button>
 </div>
   `;
-  const cancelButton = form.querySelector("[data-cancel-create-listing]");
+  const cancelButton = form.querySelector("[data-cancel-listing-form]");
 
   cancelButton?.addEventListener("click", () => {
+    if (isEditMode) {
+      form.dispatchEvent(new globalThis.CustomEvent("cancel-edit"));
+      return;
+    }
+
     globalThis.location.assign(routes.profile);
   });
 
+  if (isEditMode && listing) {
+    const titleInput = form.elements.namedItem("title");
+    const descriptionInput = form.elements.namedItem("description");
+    const mediaUrlInput = form.elements.namedItem("mediaUrl");
+    const mediaAltInput = form.elements.namedItem("mediaAlt");
+    const tagsInput = form.elements.namedItem("tags");
+
+    if (titleInput instanceof globalThis.HTMLInputElement) {
+      titleInput.value = listing.title || "";
+    }
+
+    if (descriptionInput instanceof globalThis.HTMLTextAreaElement) {
+      descriptionInput.value = listing.description || "";
+    }
+
+    if (mediaUrlInput instanceof globalThis.HTMLInputElement) {
+      mediaUrlInput.value = listing.media?.[0]?.url || "";
+    }
+
+    if (mediaAltInput instanceof globalThis.HTMLInputElement) {
+      mediaAltInput.value = listing.media?.[0]?.alt || "";
+    }
+
+    if (tagsInput instanceof globalThis.HTMLInputElement) {
+      tagsInput.value = Array.isArray(listing.tags)
+        ? listing.tags.join(", ")
+        : "";
+    }
+  }
   return form;
 }

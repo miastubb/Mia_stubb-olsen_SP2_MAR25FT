@@ -1,12 +1,16 @@
 import "../../tailwind.css";
 import "../../global.css";
 import "../../variables.css";
+import { routes } from "../../utils/routes.js";
 import { createListingDetails } from "../../components/listing-details/listing-details.js";
 import { getSession } from "../../utils/session-storage.js";
 import { setupBidHandler } from "../../components/listing-details/listing-bid-handler.js";
 
 import { readListing } from "../../api/listings/read-listing.js";
+import { deleteListing } from "../../api/listings/delete-listing.js";
 import { renderHeader } from "../../components/header/header.js";
+import { updateListing } from "../../api/listings/update-listing.js";
+import { createListingForm } from "../../components/create-listings-form/create-listings-form.js";
 
 renderHeader();
 
@@ -63,7 +67,15 @@ async function loadListing(container) {
     const listing = await readListing(listingId);
     const session = getSession();
 
-    const listingDetails = createListingDetails(listing, Boolean(session));
+    const isOwner =
+      Boolean(session?.profile?.name) &&
+      session.profile.name === listing.seller?.name;
+
+    const listingDetails = createListingDetails(
+      listing,
+      Boolean(session),
+      isOwner
+    );
 
     container.replaceChildren(listingDetails);
 
@@ -79,6 +91,152 @@ async function loadListing(container) {
         onSuccess: async () => {
           await loadListing(container);
         },
+      });
+    }
+    if (isOwner) {
+      const editButton = listingDetails.querySelector("[data-edit-listing]");
+
+      const deleteButton = listingDetails.querySelector(
+        "[data-delete-listing]"
+      );
+
+      editButton?.addEventListener("click", () => {
+        const editForm = createListingForm({
+          mode: "edit",
+          listing,
+        });
+
+        container.replaceChildren(editForm);
+
+        editForm.addEventListener("cancel-edit", async () => {
+          await loadListing(container);
+        });
+
+        editForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          const titleInput = editForm.elements.namedItem("title");
+          const descriptionInput = editForm.elements.namedItem("description");
+          const mediaUrlInput = editForm.elements.namedItem("mediaUrl");
+          const mediaAltInput = editForm.elements.namedItem("mediaAlt");
+          const tagsInput = editForm.elements.namedItem("tags");
+          const submitButton = editForm.querySelector('button[type="submit"]');
+
+          if (
+            !(titleInput instanceof globalThis.HTMLInputElement) ||
+            !(descriptionInput instanceof globalThis.HTMLTextAreaElement) ||
+            !(mediaUrlInput instanceof globalThis.HTMLInputElement) ||
+            !(mediaAltInput instanceof globalThis.HTMLInputElement) ||
+            !(tagsInput instanceof globalThis.HTMLInputElement) ||
+            !(submitButton instanceof globalThis.HTMLButtonElement)
+          ) {
+            return;
+          }
+
+          editForm.querySelectorAll("[data-error-for]").forEach((error) => {
+            error.textContent = "";
+          });
+
+          if (!titleInput.value.trim()) {
+            const titleError = editForm.querySelector(
+              '[data-error-for="title"]'
+            );
+
+            if (titleError) {
+              titleError.textContent = "Enter a title.";
+            }
+
+            titleInput.focus();
+            return;
+          }
+
+          const mediaUrl = mediaUrlInput.value.trim();
+
+          if (mediaUrl) {
+            try {
+              new globalThis.URL(mediaUrl);
+            } catch {
+              const mediaError = editForm.querySelector(
+                '[data-error-for="mediaUrl"]'
+              );
+
+              if (mediaError) {
+                mediaError.textContent = "Enter a valid image URL.";
+              }
+
+              mediaUrlInput.focus();
+              return;
+            }
+          }
+
+          const tags = tagsInput.value
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean);
+
+          const mediaAlt = mediaAltInput.value.trim();
+
+          const updatedListing = {
+            title: titleInput.value.trim(),
+            description: descriptionInput.value.trim(),
+            tags,
+            media: mediaUrl
+              ? [
+                  {
+                    url: mediaUrl,
+                    ...(mediaAlt && { alt: mediaAlt }),
+                  },
+                ]
+              : [],
+          };
+
+          submitButton.disabled = true;
+          submitButton.textContent = "Saving...";
+
+          try {
+            await updateListing(listingId, updatedListing);
+            await loadListing(container);
+          } catch (error) {
+            const formError = editForm.querySelector('[data-error-for="form"]');
+
+            if (formError) {
+              formError.textContent =
+                error instanceof Error
+                  ? error.message
+                  : "Unable to update the listing. Please try again.";
+            }
+
+            submitButton.disabled = false;
+            submitButton.textContent = "Save changes";
+          }
+        });
+      });
+
+      deleteButton?.addEventListener("click", async () => {
+        const confirmed = globalThis.confirm(
+          "Are you sure you want to delete this listing?"
+        );
+
+        if (!confirmed) {
+          return;
+        }
+
+        deleteButton.disabled = true;
+        deleteButton.textContent = "Deleting...";
+
+        try {
+          await deleteListing(listingId);
+          globalThis.location.assign(routes.profile);
+        } catch (error) {
+          globalThis.alert(
+            error instanceof Error
+              ? error.message
+              : "Unable to delete the listing. Please try again."
+          );
+
+          deleteButton.disabled = false;
+          deleteButton.textContent = "Delete listing";
+        }
       });
     }
   } catch {
