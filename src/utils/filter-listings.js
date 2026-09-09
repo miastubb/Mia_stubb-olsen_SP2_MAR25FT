@@ -23,6 +23,7 @@ function matchesSearch(listing, searchTerm) {
   const searchableContent = [
     listing.title,
     listing.description,
+    listing.seller?.name,
     ...(Array.isArray(listing.tags) ? listing.tags : []),
   ]
     .filter(Boolean)
