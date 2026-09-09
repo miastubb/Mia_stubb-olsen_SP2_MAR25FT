@@ -9,7 +9,8 @@ export async function fetchAuctionListings() {
   const searchParams = new globalThis.URLSearchParams({
     _active: "true",
     _bids: "true",
-    limit: "12",
+    _seller: "true",
+    limit: "100",
     sort: "created",
     sortOrder: "desc",
   });
