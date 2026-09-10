@@ -10,6 +10,7 @@ import {
   readProfileListings,
   readProfileBids,
 } from "../../api/profiles/read-profile.js";
+import { updateSessionProfile } from "../../utils/session-storage.js";
 
 const session = requireAuth();
 
@@ -51,6 +52,9 @@ async function loadProfile(app, name) {
     if (!profile) {
       throw new Error("Profile data was not returned.");
     }
+
+    updateSessionProfile(profile);
+    renderHeader();
 
     app.replaceChildren(
       createProfile({
