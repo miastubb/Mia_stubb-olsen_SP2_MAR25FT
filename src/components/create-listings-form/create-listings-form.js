@@ -1,4 +1,5 @@
 import { routes } from "../../utils/routes.js";
+
 /**
  * Creates the form used to enter a new auction listing.
  *
@@ -7,6 +8,120 @@ import { routes } from "../../utils/routes.js";
  *
  * @returns {HTMLFormElement}
  */
+function createMediaRow(media = {}) {
+  const row = document.createElement("div");
+
+  row.dataset.mediaRow = "";
+  row.className =
+    "grid gap-4 border border-white/10 bg-neutral-950 p-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end";
+
+  row.innerHTML = `
+    <div>
+      <label class="block font-mono text-sm uppercase text-neutral-400">
+        Image URL
+      </label>
+
+      <input
+        type="url"
+        name="mediaUrl"
+        inputmode="url"
+        autocomplete="url"
+        class="mt-2 w-full border border-white/20 bg-neutral-950 px-4 py-3 text-white"
+        placeholder="https://example.com/image.jpg"
+      />
+    </div>
+
+    <div>
+      <label class="block font-mono text-sm uppercase text-neutral-400">
+        Image description
+      </label>
+
+      <input
+        type="text"
+        name="mediaAlt"
+        autocomplete="off"
+        class="mt-2 w-full border border-white/20 bg-neutral-950 px-4 py-3 text-white"
+        placeholder="Describe the image"
+      />
+    </div>
+
+    <button
+      type="button"
+      data-remove-media
+      class="min-h-12 border border-red-500/40 px-4 font-mono text-sm uppercase text-red-400 hover:border-red-400"
+    >
+      Remove
+    </button>
+  `;
+
+  const urlInput = row.querySelector('input[name="mediaUrl"]');
+  const altInput = row.querySelector('input[name="mediaAlt"]');
+  const removeButton = row.querySelector("[data-remove-media]");
+
+  if (urlInput instanceof globalThis.HTMLInputElement) {
+    urlInput.value = media.url || "";
+  }
+
+  if (altInput instanceof globalThis.HTMLInputElement) {
+    altInput.value = media.alt || "";
+  }
+
+  removeButton?.addEventListener("click", () => {
+    row.remove();
+  });
+
+  return row;
+}
+
+/**
+ * Collects and validates media entered in a listing form.
+ *
+ * @param {HTMLFormElement} form - Listing form containing media rows.
+ * @returns {{media: Array<{url: string, alt?: string}>, invalidInput: HTMLInputElement|null}}
+ */
+export function collectListingMedia(form) {
+  const media = [];
+  const rows = form.querySelectorAll("[data-media-row]");
+
+  for (const row of rows) {
+    const urlInput = row.querySelector('input[name="mediaUrl"]');
+    const altInput = row.querySelector('input[name="mediaAlt"]');
+
+    if (
+      !(urlInput instanceof globalThis.HTMLInputElement) ||
+      !(altInput instanceof globalThis.HTMLInputElement)
+    ) {
+      continue;
+    }
+
+    const url = urlInput.value.trim();
+    const alt = altInput.value.trim();
+
+    if (!url) {
+      continue;
+    }
+
+    try {
+      new globalThis.URL(url);
+    } catch {
+      return {
+        media: [],
+        invalidInput: urlInput,
+      };
+    }
+
+    media.push({
+      url,
+      ...(alt && { alt }),
+    });
+  }
+
+  return {
+    media,
+    invalidInput: null,
+  };
+}
+
 export function createListingForm({ mode = "create", listing = null } = {}) {
   const form = document.createElement("form");
 
@@ -56,47 +171,34 @@ export function createListingForm({ mode = "create", listing = null } = {}) {
     </div>
 
     <div>
-      <label
-        for="listing-media-url"
-        class="block font-mono text-sm uppercase text-neutral-400"
-      >
-        Image URL <span class="text-neutral-500">(optional)</span>
-      </label>
-
-      <input
-        id="listing-media-url"
-        name="mediaUrl"
-        type="url"
-        inputmode="url"
-        autocomplete="url"
-        class="mt-2 w-full border border-white/20 bg-neutral-950 px-4 py-3 text-white"
-        placeholder="https://example.com/image.jpg"
-      />
-
-      <p
-        class="mt-2 min-h-5 text-sm text-red-400"
-        data-error-for="mediaUrl"
-        aria-live="polite"
-      ></p>
-    </div>
-
+  <div class="flex items-center justify-between gap-4">
     <div>
-      <label
-        for="listing-media-alt"
-        class="block font-mono text-sm uppercase text-neutral-400"
-      >
-        Image description <span class="text-neutral-500">(optional)</span>
-      </label>
+      <p class="font-mono text-sm uppercase text-neutral-400">
+        Images <span class="text-neutral-500">(optional)</span>
+      </p>
 
-      <input
-        id="listing-media-alt"
-        name="mediaAlt"
-        type="text"
-        autocomplete="off"
-        class="mt-2 w-full border border-white/20 bg-neutral-950 px-4 py-3 text-white"
-        placeholder="Describe the image"
-      />
+      <p class="mt-2 text-sm text-neutral-500">
+        Add one or more images to the listing.
+      </p>
     </div>
+
+    <button
+      type="button"
+      data-add-media
+      class="border border-white/20 px-4 py-2 font-mono text-sm uppercase text-neutral-300 hover:text-white"
+    >
+      + Add image
+    </button>
+  </div>
+
+  <div data-media-list class="mt-5 space-y-5"></div>
+
+  <p
+    class="mt-2 min-h-5 text-sm text-red-400"
+    data-error-for="media"
+    aria-live="polite"
+  ></p>
+</div>
 
     <div>
       <label
@@ -196,6 +298,20 @@ export function createListingForm({ mode = "create", listing = null } = {}) {
   </button>
 </div>
   `;
+  const mediaList = form.querySelector("[data-media-list]");
+  const addMediaButton = form.querySelector("[data-add-media]");
+
+  function addMediaRow(media = {}) {
+    if (!mediaList) {
+      return;
+    }
+
+    mediaList.append(createMediaRow(media));
+  }
+
+  addMediaButton?.addEventListener("click", () => {
+    addMediaRow();
+  });
   const cancelButton = form.querySelector("[data-cancel-listing-form]");
 
   cancelButton?.addEventListener("click", () => {
@@ -206,12 +322,13 @@ export function createListingForm({ mode = "create", listing = null } = {}) {
 
     globalThis.location.assign(routes.profile);
   });
+  if (!isEditMode) {
+    addMediaRow();
+  }
 
   if (isEditMode && listing) {
     const titleInput = form.elements.namedItem("title");
     const descriptionInput = form.elements.namedItem("description");
-    const mediaUrlInput = form.elements.namedItem("mediaUrl");
-    const mediaAltInput = form.elements.namedItem("mediaAlt");
     const tagsInput = form.elements.namedItem("tags");
 
     if (titleInput instanceof globalThis.HTMLInputElement) {
@@ -222,13 +339,11 @@ export function createListingForm({ mode = "create", listing = null } = {}) {
       descriptionInput.value = listing.description || "";
     }
 
-    if (mediaUrlInput instanceof globalThis.HTMLInputElement) {
-      mediaUrlInput.value = listing.media?.[0]?.url || "";
-    }
+    const existingMedia = Array.isArray(listing.media) ? listing.media : [];
 
-    if (mediaAltInput instanceof globalThis.HTMLInputElement) {
-      mediaAltInput.value = listing.media?.[0]?.alt || "";
-    }
+    existingMedia.forEach((media) => {
+      addMediaRow(media);
+    });
 
     if (tagsInput instanceof globalThis.HTMLInputElement) {
       tagsInput.value = Array.isArray(listing.tags)
