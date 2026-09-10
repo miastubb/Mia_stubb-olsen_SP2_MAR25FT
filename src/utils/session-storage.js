@@ -135,6 +135,29 @@ export function getSession() {
 }
 
 /**
+ * Updates the stored session profile while preserving auth credentials.
+ *
+ * @param {SessionProfile} profile
+ * @returns {SessionData|null}
+ */
+export function updateSessionProfile(profile) {
+  const session = getSession();
+
+  if (!session) {
+    return null;
+  }
+
+  return saveSession({
+    token: session.token,
+    apiKey: session.apiKey,
+    profile: {
+      ...session.profile,
+      ...profile,
+    },
+  });
+}
+
+/**
  * Clears the current session.
  */
 export function clearSession() {
