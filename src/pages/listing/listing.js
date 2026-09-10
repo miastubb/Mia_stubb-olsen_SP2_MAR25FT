@@ -10,8 +10,10 @@ import { readListing } from "../../api/listings/read-listing.js";
 import { deleteListing } from "../../api/listings/delete-listing.js";
 import { renderHeader } from "../../components/header/header.js";
 import { updateListing } from "../../api/listings/update-listing.js";
-import { createListingForm } from "../../components/create-listings-form/create-listings-form.js";
-
+import {
+  collectListingMedia,
+  createListingForm,
+} from "../../components/create-listings-form/create-listings-form.js";
 renderHeader();
 
 const app = document.querySelector("#app");
@@ -117,16 +119,12 @@ async function loadListing(container) {
 
           const titleInput = editForm.elements.namedItem("title");
           const descriptionInput = editForm.elements.namedItem("description");
-          const mediaUrlInput = editForm.elements.namedItem("mediaUrl");
-          const mediaAltInput = editForm.elements.namedItem("mediaAlt");
           const tagsInput = editForm.elements.namedItem("tags");
           const submitButton = editForm.querySelector('button[type="submit"]');
 
           if (
             !(titleInput instanceof globalThis.HTMLInputElement) ||
             !(descriptionInput instanceof globalThis.HTMLTextAreaElement) ||
-            !(mediaUrlInput instanceof globalThis.HTMLInputElement) ||
-            !(mediaAltInput instanceof globalThis.HTMLInputElement) ||
             !(tagsInput instanceof globalThis.HTMLInputElement) ||
             !(submitButton instanceof globalThis.HTMLButtonElement)
           ) {
@@ -150,23 +148,19 @@ async function loadListing(container) {
             return;
           }
 
-          const mediaUrl = mediaUrlInput.value.trim();
+          const { media, invalidInput } = collectListingMedia(editForm);
 
-          if (mediaUrl) {
-            try {
-              new globalThis.URL(mediaUrl);
-            } catch {
-              const mediaError = editForm.querySelector(
-                '[data-error-for="mediaUrl"]'
-              );
+          if (invalidInput) {
+            const mediaError = editForm.querySelector(
+              '[data-error-for="media"]'
+            );
 
-              if (mediaError) {
-                mediaError.textContent = "Enter a valid image URL.";
-              }
-
-              mediaUrlInput.focus();
-              return;
+            if (mediaError) {
+              mediaError.textContent = "Enter a valid image URL.";
             }
+
+            invalidInput.focus();
+            return;
           }
 
           const tags = tagsInput.value
@@ -174,20 +168,11 @@ async function loadListing(container) {
             .map((tag) => tag.trim())
             .filter(Boolean);
 
-          const mediaAlt = mediaAltInput.value.trim();
-
           const updatedListing = {
             title: titleInput.value.trim(),
             description: descriptionInput.value.trim(),
             tags,
-            media: mediaUrl
-              ? [
-                  {
-                    url: mediaUrl,
-                    ...(mediaAlt && { alt: mediaAlt }),
-                  },
-                ]
-              : [],
+            media,
           };
 
           submitButton.disabled = true;

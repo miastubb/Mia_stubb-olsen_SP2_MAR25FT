@@ -1,5 +1,6 @@
 import { createListing } from "../../api/listings/create-listing.js";
 import { routes } from "../../utils/routes.js";
+import { collectListingMedia } from "./create-listings-form.js";
 /**
  * Connects client-side validation to the create listing form.
  *
@@ -14,18 +15,14 @@ export function setupCreateListingForm(form) {
   }
 
   const titleInput = form.elements.namedItem("title");
-  const mediaUrlInput = form.elements.namedItem("mediaUrl");
   const deadlineInput = form.elements.namedItem("endsAt");
   const descriptionInput = form.elements.namedItem("description");
-  const mediaAltInput = form.elements.namedItem("mediaAlt");
   const tagsInput = form.elements.namedItem("tags");
   const submitButton = form.querySelector('button[type="submit"]');
 
   if (
     !(titleInput instanceof globalThis.HTMLInputElement) ||
     !(descriptionInput instanceof globalThis.HTMLTextAreaElement) ||
-    !(mediaUrlInput instanceof globalThis.HTMLInputElement) ||
-    !(mediaAltInput instanceof globalThis.HTMLInputElement) ||
     !(tagsInput instanceof globalThis.HTMLInputElement) ||
     !(deadlineInput instanceof globalThis.HTMLInputElement) ||
     !(submitButton instanceof globalThis.HTMLButtonElement)
@@ -67,15 +64,6 @@ export function setupCreateListingForm(form) {
       firstInvalidInput ??= titleInput;
     }
 
-    if (mediaUrlInput.value.trim()) {
-      try {
-        new globalThis.URL(mediaUrlInput.value.trim());
-      } catch {
-        showError("mediaUrl", "Enter a valid image URL.");
-        firstInvalidInput ??= mediaUrlInput;
-      }
-    }
-
     const deadline = new Date(deadlineInput.value);
 
     if (!deadlineInput.value || Number.isNaN(deadline.getTime())) {
@@ -84,6 +72,13 @@ export function setupCreateListingForm(form) {
     } else if (deadline <= new Date()) {
       showError("endsAt", "Auction deadline must be in the future.");
       firstInvalidInput ??= deadlineInput;
+    }
+
+    const { media, invalidInput } = collectListingMedia(form);
+
+    if (invalidInput) {
+      showError("media", "Enter a valid image URL.");
+      firstInvalidInput ??= invalidInput;
     }
 
     if (firstInvalidInput) {
@@ -96,9 +91,6 @@ export function setupCreateListingForm(form) {
       .map((tag) => tag.trim())
       .filter(Boolean);
 
-    const mediaUrl = mediaUrlInput.value.trim();
-    const mediaAlt = mediaAltInput.value.trim();
-
     const listing = {
       title: titleInput.value.trim(),
       endsAt: new Date(deadlineInput.value).toISOString(),
@@ -108,13 +100,8 @@ export function setupCreateListingForm(form) {
       ...(tags.length > 0 && {
         tags,
       }),
-      ...(mediaUrl && {
-        media: [
-          {
-            url: mediaUrl,
-            ...(mediaAlt && { alt: mediaAlt }),
-          },
-        ],
+      ...(media.length > 0 && {
+        media,
       }),
     };
 
