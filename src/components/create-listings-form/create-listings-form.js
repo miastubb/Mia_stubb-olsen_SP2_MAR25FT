@@ -8,7 +8,15 @@ import { routes } from "../../utils/routes.js";
  *
  * @returns {HTMLFormElement}
  */
+
+let mediaRowId = 0;
+
 function createMediaRow(media = {}) {
+  mediaRowId += 1;
+
+  const urlId = `listing-media-url-${mediaRowId}`;
+  const altId = `listing-media-alt-${mediaRowId}`;
+
   const row = document.createElement("div");
 
   row.dataset.mediaRow = "";
@@ -16,43 +24,51 @@ function createMediaRow(media = {}) {
     "grid gap-4 border border-white/10 bg-neutral-950 p-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end";
 
   row.innerHTML = `
-    <div>
-      <label class="block font-mono text-sm uppercase text-neutral-400">
-        Image URL
-      </label>
-
-      <input
-        type="url"
-        name="mediaUrl"
-        inputmode="url"
-        autocomplete="url"
-        class="mt-2 w-full border border-white/20 bg-neutral-950 px-4 py-3 text-white"
-        placeholder="https://example.com/image.jpg"
-      />
-    </div>
-
-    <div>
-      <label class="block font-mono text-sm uppercase text-neutral-400">
-        Image description
-      </label>
-
-      <input
-        type="text"
-        name="mediaAlt"
-        autocomplete="off"
-        class="mt-2 w-full border border-white/20 bg-neutral-950 px-4 py-3 text-white"
-        placeholder="Describe the image"
-      />
-    </div>
-
-    <button
-      type="button"
-      data-remove-media
-      class="min-h-12 border border-red-500/40 px-4 font-mono text-sm uppercase text-red-400 hover:border-red-400"
+  <div>
+    <label
+      for="${urlId}"
+      class="block font-mono text-sm uppercase text-neutral-400"
     >
-      Remove
-    </button>
-  `;
+      Image URL
+    </label>
+
+    <input
+      id="${urlId}"
+      type="url"
+      name="mediaUrl"
+      inputmode="url"
+      autocomplete="url"
+      class="mt-2 w-full border border-white/20 bg-neutral-950 px-4 py-3 text-white"
+      placeholder="https://example.com/image.jpg"
+    />
+  </div>
+
+  <div>
+    <label
+      for="${altId}"
+      class="block font-mono text-sm uppercase text-neutral-400"
+    >
+      Image description
+    </label>
+
+    <input
+      id="${altId}"
+      type="text"
+      name="mediaAlt"
+      autocomplete="off"
+      class="mt-2 w-full border border-white/20 bg-neutral-950 px-4 py-3 text-white"
+      placeholder="Describe the image"
+    />
+  </div>
+
+  <button
+    type="button"
+    data-remove-media
+    class="min-h-12 border border-red-500/40 px-4 font-mono text-sm uppercase text-red-400 hover:border-red-400"
+  >
+    Remove
+  </button>
+`;
 
   const urlInput = row.querySelector('input[name="mediaUrl"]');
   const altInput = row.querySelector('input[name="mediaAlt"]');
