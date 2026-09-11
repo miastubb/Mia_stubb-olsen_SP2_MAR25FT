@@ -3,6 +3,7 @@ import "../../global.css";
 import "../../variables.css";
 
 import { renderHeader } from "../../components/header/header.js";
+import { renderFooter } from "../../components/footer/footer.js";
 import { createProfile } from "../../components/profile/profile.js";
 import { requireAuth } from "../../utils/auth-guard.js";
 import {
@@ -16,6 +17,7 @@ const session = requireAuth();
 
 if (session) {
   renderHeader();
+  renderFooter();
 
   const app = document.querySelector("#app");
 

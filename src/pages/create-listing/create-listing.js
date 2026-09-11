@@ -2,6 +2,7 @@ import "../../tailwind.css";
 import "../../global.css";
 import "../../variables.css";
 import gavelIcon from "../../assets/icons/gavel.svg";
+import { renderFooter } from "../../components/footer/footer.js";
 
 import { renderHeader } from "../../components/header/header.js";
 import { requireAuth } from "../../utils/auth-guard.js";
@@ -13,6 +14,7 @@ const session = requireAuth();
 
 if (session) {
   renderHeader();
+  renderFooter();
 
   const app = document.querySelector("#app");
 

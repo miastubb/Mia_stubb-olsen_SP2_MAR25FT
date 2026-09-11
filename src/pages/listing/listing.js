@@ -2,6 +2,7 @@ import "../../tailwind.css";
 import "../../global.css";
 import "../../variables.css";
 import { routes } from "../../utils/routes.js";
+import { renderFooter } from "../../components/footer/footer.js";
 import { createListingDetails } from "../../components/listing-details/listing-details.js";
 import { getSession } from "../../utils/session-storage.js";
 import { setupBidHandler } from "../../components/listing-details/listing-bid-handler.js";
@@ -15,6 +16,7 @@ import {
   createListingForm,
 } from "../../components/create-listings-form/create-listings-form.js";
 renderHeader();
+renderFooter();
 
 const app = document.querySelector("#app");
 

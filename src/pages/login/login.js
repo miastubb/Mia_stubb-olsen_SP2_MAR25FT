@@ -1,11 +1,13 @@
 import "../../tailwind.css";
 import "../../global.css";
 import "../../variables.css";
+import { renderFooter } from "../../components/footer/footer.js";
 
 import { renderHeader } from "../../components/header/header.js";
 import { createLoginForm } from "../../components/login-form/login-form.js";
 
 renderHeader();
+renderFooter();
 
 const app = document.querySelector("#app");
 const searchParams = new window.URLSearchParams(window.location.search);
