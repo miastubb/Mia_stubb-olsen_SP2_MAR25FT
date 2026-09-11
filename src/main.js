@@ -4,6 +4,7 @@ import "./variables.css";
 
 import { Hero } from "./components/hero/hero.js";
 import { renderHeader } from "./components/header/header.js";
+import { renderFooter } from "./components/footer/footer.js";
 import { createSearchBar } from "./components/search-bar/search-bar.js";
 import {
   createAuctionFilter,
@@ -18,6 +19,7 @@ import {
 import { fetchAuctionListings } from "./api/listings/read-listings.js";
 
 renderHeader();
+renderFooter();
 
 const app = document.querySelector("#app");
 
