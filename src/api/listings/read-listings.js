@@ -10,7 +10,7 @@ export async function fetchAuctionListings() {
     _active: "true",
     _bids: "true",
     _seller: "true",
-    limit: "100",
+    limit: "20",
     sort: "created",
     sortOrder: "desc",
   });
