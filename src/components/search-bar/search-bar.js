@@ -15,7 +15,8 @@ export function createSearchBar(onSearch = () => {}) {
 
   const searchBar = document.createElement("form");
 
-  searchBar.className = "mx-4 w-full max-w-[620px] sm:mx-6 lg:mx-10";
+  searchBar.className =
+    "mx-4 w-[calc(100%-2rem)] max-w-[620px] sm:mx-6 sm:w-[calc(100%-3rem)] lg:mx-10 lg:w-[calc(100%-5rem)]";
   searchBar.setAttribute("role", "search");
 
   searchBar.innerHTML = `
@@ -25,16 +26,16 @@ export function createSearchBar(onSearch = () => {}) {
           src="${searchIcon}"
           alt=""
           aria-hidden="true"
-          class="shrink-0 border-l border-white/10 px-3 sm:px-5"
+          class="shrink-0 border-l border-white/10 px-2 sm:px-5"
         />
 
         <input
           id="search-input"
           name="search"
           type="search"
-          placeholder="Search listings, artists, categories..."
+          placeholder="Search listings..."
           aria-label="Search listings"
-          class="flex-1 bg-transparent py-4 text-base text-white placeholder:text-neutral-400 outline-none"
+          class="min-w-0 flex-1 bg-transparent py-4 text-sm text-white placeholder:text-neutral-400 outline-none sm:text-base"
         />
 
         <button
@@ -49,7 +50,7 @@ export function createSearchBar(onSearch = () => {}) {
 
       <button
         type="submit"
-        class="cursor-pointer border-l border-white/10 px-5 font-mono tracking-wide text-neutral-400 transition-colors hover:text-white"
+        class="cursor-pointer border-l border-white/10 px-3 font-mono text-sm tracking-wide text-neutral-400 transition-colors hover:text-white sm:px-5 sm:text-base"
       >
         Search
       </button>
