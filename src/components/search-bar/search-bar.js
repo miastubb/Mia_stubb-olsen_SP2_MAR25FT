@@ -50,7 +50,7 @@ export function createSearchBar(onSearch = () => {}) {
 
       <button
         type="submit"
-        class="cursor-pointer border-l border-white/10 px-3 font-mono text-sm tracking-wide text-neutral-400 transition-colors hover:text-white sm:px-5 sm:text-base"
+        class="cursor-pointer border-l border-white/10 px-3 font-mono text-sm tracking-wide text-black transition-colors hover:text-white sm:px-5 sm:text-base color bg-amber-500"
       >
         Search
       </button>
